@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "jest",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rimraf dist",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit"
   },
   "keywords": ["solana", "defi", "security", "token", "verification"],
   "author": "TokenSOLver",

@@ -9,27 +9,26 @@
     "tools/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean",
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "type-check": "turbo run type-check",
+    "type-check": "npm run type-check --workspaces --if-present",
     "contracts:build": "cd contracts/solguard-registry && anchor build",
     "contracts:test": "cd contracts/solguard-registry && anchor test",
     "contracts:deploy": "cd contracts/solguard-registry && anchor deploy",
-    "oracle:start": "turbo run start --filter=@solguard/oracle",
-    "launchpad:start": "turbo run start --filter=@solguard/launchpad",
+    "oracle:start": "npm run start --workspace=@solguard/oracle",
+    "launchpad:start": "npm run start --workspace=@solguard/launchpad",
     "demo": "node tools/scripts/demo.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.2",
-    "@turbo/gen": "^1.10.12",
     "eslint": "^8.48.0",
     "prettier": "^3.0.3",
-    "turbo": "^1.10.12",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "rimraf": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0",
