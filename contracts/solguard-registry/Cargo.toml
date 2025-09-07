@@ -1,0 +1,24 @@
+[package]
+name = "solguard-registry"
+version = "0.1.0"
+description = "SOLGuard Registry - On-chain attestation system for TokenSOLver Verification Standard (TSV-1)"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/lorddreadcoin/solana-universal-analytics"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "solguard_registry"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.29.0"
+
+[dev-dependencies]
+solana-sdk = "1.17"
