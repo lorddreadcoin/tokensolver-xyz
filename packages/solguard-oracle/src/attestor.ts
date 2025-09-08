@@ -6,7 +6,7 @@
 import { Connection, PublicKey, Keypair, Transaction } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
 import { keccak_256 } from '@noble/hashes/sha3';
-import { gradeFromRules, gradeToNumber, RuleResult, RuleSetResult } from '@solguard/core';
+import { gradeFromRules, gradeToNumber, RuleResult, RuleSetResult, Grade } from '@solguard/core';
 import { TokenScanner, ScannerConfig } from './scanner';
 import * as fs from 'fs';
 
@@ -149,7 +149,7 @@ export class TokenAttestor {
       .attestToken(
         rulesetVersion,
         Math.round(score * 10000), // Convert to basis points
-        gradeToNumber(grade),
+        gradeToNumber(grade as Grade),
         Array.from(proofHash)
       )
       .accounts({
@@ -202,10 +202,10 @@ export class TokenAttestor {
       
       return {
         exists: true,
-        score: account.scoreBps / 10000,
-        grade: ['red', 'yellow', 'green'][account.grade],
-        attestedAt: new Date(account.attestedAt * 1000),
-        revoked: account.revoked
+        score: (account.scoreBps as number) / 10000,
+        grade: ['red', 'yellow', 'green'][account.grade as number],
+        attestedAt: new Date((account.attestedAt as number) * 1000),
+        revoked: account.revoked as boolean
       };
       
     } catch (error) {

@@ -17,7 +17,7 @@ export class RuleValidator {
     return {
       id: 'R1',
       severity: 'high',
-      passed: isMultisig,
+      passed: Boolean(isMultisig),
       details: { authority: metrics.mintAuthority }
     };
   }
@@ -88,7 +88,7 @@ export class RuleValidator {
     return {
       id: 'R5',
       severity: 'medium',
-      passed: hasPool && isVerified && hasLiquidity,
+      passed: Boolean(hasPool && isVerified && hasLiquidity),
       details: { 
         pool: pool?.address, 
         type: pool?.type, 
@@ -107,7 +107,7 @@ export class RuleValidator {
     return {
       id: 'R6',
       severity: 'high',
-      passed: isLocked && hasExpiry,
+      passed: Boolean(isLocked && hasExpiry),
       details: { 
         locked: isLocked, 
         expiry: pool?.lpLockExpiry,

@@ -5,7 +5,6 @@
 
 import { Router, Request, Response } from 'express';
 import { AttestationMiddleware } from '../middleware/attestation';
-import { createCanvas, loadImage } from 'canvas';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -116,77 +115,14 @@ export class GuardRoutes {
       const { mint } = req.params;
       const { grade = 'red', score = '0.00' } = req.query;
       
-      // Create canvas
-      const width = 1200;
-      const height = 630;
-      const canvas = createCanvas(width, height);
-      const ctx = canvas.getContext('2d');
+      // Generate placeholder image (canvas functionality removed)
+      const imageData = this.generatePlaceholderImage(grade as string, parseFloat(score as string));
       
-      // Background gradient based on grade
-      const gradientColors = this.getGradientColors(grade as string);
-      const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, gradientColors.start);
-      gradient.addColorStop(1, gradientColors.end);
-      
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-      
-      // Add pattern overlay
-      ctx.globalAlpha = 0.1;
-      this.drawPattern(ctx, width, height);
-      ctx.globalAlpha = 1;
-      
-      // SOLGuard branding
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 48px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('SOLGuard Protocol', width / 2, 100);
-      
-      ctx.font = '32px Arial';
-      ctx.fillText('Token Security Verification', width / 2, 150);
-      
-      // Grade badge
-      const badgeSize = 200;
-      const badgeX = width / 2 - badgeSize / 2;
-      const badgeY = 200;
-      
-      // Badge background
-      ctx.fillStyle = this.getBadgeColor(grade as string);
-      ctx.beginPath();
-      ctx.roundRect(badgeX, badgeY, badgeSize, badgeSize, 20);
-      ctx.fill();
-      
-      // Grade text
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 72px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText((grade as string).toUpperCase(), width / 2, badgeY + 80);
-      
-      // Score
-      ctx.font = '36px Arial';
-      ctx.fillText(`${parseFloat(score as string).toFixed(2)}`, width / 2, badgeY + 130);
-      
-      // Token info
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '24px Arial';
-      const shortMint = `${mint.slice(0, 8)}...${mint.slice(-8)}`;
-      ctx.fillText(`Token: ${shortMint}`, width / 2, 480);
-      
-      // TSV-1 compliance
-      ctx.font = '20px Arial';
-      ctx.fillText('TSV-1 Security Standard', width / 2, 520);
-      
-      // Footer
-      ctx.font = '18px Arial';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillText('Powered by TokenSOLver × ABS', width / 2, 580);
-      
-      // Convert to PNG buffer
-      const buffer = canvas.toBuffer('image/png');
-      
-      res.setHeader('Content-Type', 'image/png');
+      // Return SVG image directly
+      const svgData = Buffer.from(imageData.split(',')[1], 'base64').toString();
+      res.setHeader('Content-Type', 'image/svg+xml');
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-      res.send(buffer);
+      res.send(svgData);
       
     } catch (error) {
       console.error('Error generating OG image:', error);
@@ -266,33 +202,20 @@ export class GuardRoutes {
     }
   }
 
-  private drawPattern(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    // Draw hexagonal pattern
-    const hexSize = 40;
-    const hexHeight = hexSize * Math.sqrt(3);
-    
-    for (let y = 0; y < height + hexHeight; y += hexHeight * 0.75) {
-      for (let x = 0; x < width + hexSize * 2; x += hexSize * 1.5) {
-        const offsetX = (y / (hexHeight * 0.75)) % 2 === 1 ? hexSize * 0.75 : 0;
-        this.drawHexagon(ctx, x + offsetX, y, hexSize);
-      }
-    }
-  }
-
-  private drawHexagon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3;
-      const hexX = x + size * Math.cos(angle);
-      const hexY = y + size * Math.sin(angle);
-      if (i === 0) {
-        ctx.moveTo(hexX, hexY);
-      } else {
-        ctx.lineTo(hexX, hexY);
-      }
-    }
-    ctx.closePath();
-    ctx.stroke();
+  // Canvas functionality removed - can be re-added later with proper setup
+  private generatePlaceholderImage(grade: string, score: number): string {
+    // Return a simple SVG as base64 for now
+    const color = this.getBadgeColor(grade);
+    const svg = `
+      <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="${color}"/>
+        <text x="50%" y="50%" text-anchor="middle" dy=".3em" 
+              font-family="Arial, sans-serif" font-size="48" fill="white">
+          SOLGuard ${grade.toUpperCase()} - Score: ${(score * 100).toFixed(1)}%
+        </text>
+      </svg>
+    `;
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 
   getRouter(): Router {

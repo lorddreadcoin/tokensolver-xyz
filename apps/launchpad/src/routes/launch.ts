@@ -277,11 +277,10 @@ export class LaunchRoutes {
   private async verifyFeePayment(signature: string, payer: string): Promise<boolean> {
     try {
       const tx = await this.connection.getParsedTransaction(signature);
-      if (!tx || tx.meta?.err) {
+      if (!tx || !tx.meta || tx.meta.err) {
         return false;
       }
 
-      // Check if payment was made to treasury
       const treasuryPk = new PublicKey(this.config.treasuryWallet);
       const payerPk = new PublicKey(payer);
       

@@ -29,7 +29,7 @@ export interface AttestationResult {
 
 export class AttestationMiddleware {
   private connection: Connection;
-  private program: Program;
+  private program: Program | null;
   private config: AttestationConfig;
 
   constructor(config: AttestationConfig) {
@@ -37,14 +37,20 @@ export class AttestationMiddleware {
     this.connection = new Connection(config.endpoint, 'confirmed');
     
     // Setup program (read-only, no wallet needed for verification)
-    const idl = require(config.idlPath);
-    const provider = new AnchorProvider(
-      this.connection,
-      {} as any, // No wallet needed for read operations
-      { commitment: 'confirmed' }
-    );
-    
-    this.program = new Program(idl, new PublicKey(config.programId), provider);
+    try {
+      const idl = require(config.idlPath);
+      const provider = new AnchorProvider(
+        this.connection,
+        {} as any, // No wallet needed for read operations
+        { commitment: 'confirmed' }
+      );
+      
+      this.program = new Program(idl, new PublicKey(config.programId), provider);
+    } catch (error) {
+      console.warn('Warning: Could not load Anchor program IDL. Attestation verification will be disabled.');
+      console.warn('To enable attestations, build the contracts with: npm run contracts:build');
+      this.program = null;
+    }
   }
 
   /**
@@ -97,8 +103,17 @@ export class AttestationMiddleware {
   /**
    * Check if token has valid attestation
    */
-  async checkAttestation(mintAddress: string): Promise<AttestationResult> {
+  private async checkAttestation(mintAddress: string): Promise<AttestationResult> {
     try {
+      // If program is not available, return not verified
+      if (!this.program) {
+        return {
+          exists: false,
+          valid: false,
+          reason: 'Attestation verification unavailable - contracts not deployed'
+        };
+      }
+
       const mintPk = new PublicKey(mintAddress);
       
       // Derive attestation PDA
@@ -133,17 +148,17 @@ export class AttestationMiddleware {
       }
       
       // Check grade meets minimum requirement
-      const grade = numberToGrade(account.grade);
-      const score = account.scoreBps / 10000;
+      const grade = numberToGrade(account.grade as number);
+      const score = (account.scoreBps as number) / 10000;
       const minGradeValue = this.config.minGrade === 'green' ? 2 : 1;
       
-      if (account.grade < minGradeValue) {
+      if ((account.grade as number) < minGradeValue) {
         return {
           exists: true,
           valid: false,
           score,
           grade,
-          attestedAt: new Date(account.attestedAt * 1000),
+          attestedAt: new Date((account.attestedAt as number) * 1000),
           revoked: false,
           reason: `Grade ${grade.toUpperCase()} below minimum requirement ${this.config.minGrade.toUpperCase()}`
         };
@@ -154,7 +169,7 @@ export class AttestationMiddleware {
         valid: true,
         score,
         grade,
-        attestedAt: new Date(account.attestedAt * 1000),
+        attestedAt: new Date((account.attestedAt as number) * 1000),
         revoked: false
       };
       

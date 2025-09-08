@@ -78,7 +78,7 @@ export class TokenScanner {
         throw new Error('Invalid mint account');
       }
 
-      const parsedData = mintInfo.value.data.parsed.info;
+      const parsedData = (mintInfo.value.data as any).parsed.info;
       
       // Get holder count from Helius or fallback method
       const holders = await this.getHolderCount(mintAddress);
@@ -273,7 +273,7 @@ export class TokenScanner {
     try {
       const mintInfo = await this.connection.getParsedAccountInfo(new PublicKey(mintAddress));
       if (mintInfo.value?.data && typeof mintInfo.value.data !== 'string') {
-        return parseInt(mintInfo.value.data.parsed.info.supply);
+        return parseInt((mintInfo.value.data as any).parsed.info.supply);
       }
       return 0;
     } catch (error) {
