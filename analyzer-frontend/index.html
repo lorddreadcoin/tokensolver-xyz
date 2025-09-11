@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TokenSOLver Analyzer • SOLGuard Engine</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">TokenSOLver <span class="badge">Analyzer</span></div>
+    <nav>
+      <a href="https://twitter.com/TokenSOLver" target="_blank" rel="noopener">@TokenSOLver</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="search">
+      <h1>SOLGuard Engine — On‑chain Intelligence</h1>
+      <p>Paste a Solana wallet or token mint address. We auto‑detect the type.</p>
+      <form id="search-form">
+        <input id="address" type="text" placeholder="Paste wallet or token mint address" required />
+        <button type="submit">Analyze</button>
+      </form>
+      <div class="hint">Powered by QuickNode, Helius (optional), and Dexscreener.</div>
+    </section>
+
+    <section id="result" class="hidden">
+      <div id="summary"></div>
+
+      <div id="score-card" class="card hidden">
+        <h2>SOLGuard Score</h2>
+        <div id="score-value" class="score">—</div>
+        <div id="score-reasons"></div>
+      </div>
+
+      <div id="holders" class="card hidden">
+        <h2>Top Holders</h2>
+        <table>
+          <thead><tr><th>Rank</th><th>Address</th><th>Balance</th><th>% Supply</th></tr></thead>
+          <tbody id="holders-body"></tbody>
+        </table>
+      </div>
+
+      <div id="liquidity" class="card hidden">
+        <h2>Liquidity</h2>
+        <div id="liquidity-body"></div>
+      </div>
+
+      <div id="chart" class="card hidden">
+        <h2>Chart</h2>
+        <iframe id="dexscreener-embed" src="" loading="lazy"></iframe>
+      </div>
+
+      <div id="bubbles" class="card hidden">
+        <h2>Bubble Map</h2>
+        <pre id="bubbles-json" class="json"></pre>
+      </div>
+    </section>
+
+    <section id="error" class="card error hidden"></section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

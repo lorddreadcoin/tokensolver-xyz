@@ -1,0 +1,56 @@
+// Netlify Function: resolve
+// Detect whether an input address is a token mint or a wallet address on Solana.
+
+export const config = { path: "/resolve" };
+
+const RPC = process.env.QUICKNODE_RPC_URL;
+const CLUSTER = process.env.SOLANA_CLUSTER || "mainnet-beta";
+
+async function getAccountInfo(address) {
+  const body = {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "getAccountInfo",
+    params: [address, { encoding: "base64" }]
+  };
+  const res = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`RPC error: ${res.status}`);
+  return res.json();
+}
+
+export default async (req, context) => {
+  try {
+    const { address } = await req.json();
+    if (!address) return new Response(JSON.stringify({ error: "Missing address" }), { status: 400 });
+
+    // Basic detection via getAccountInfo
+    const info = await getAccountInfo(address);
+    const acc = info?.result?.value;
+
+    // If no account data, treat as wallet (could be system account without data)
+    if (!acc) {
+      return Response.json({ type: "wallet", normalizedAddress: address, cluster: CLUSTER });
+    }
+
+    const owner = acc?.owner; // program owner
+    // SPL Token Program v2 id
+    const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+
+    if (owner === TOKEN_PROGRAM) {
+      // Token account or mint - quick heuristic: mints have data length 82
+      const dataB64 = acc?.data?.[0];
+      let isMint = false;
+      if (dataB64) {
+        const raw = Buffer.from(dataB64, "base64");
+        // Mint account size is 82 bytes in SPL Token v2
+        isMint = raw.length === 82;
+      }
+      return Response.json({ type: isMint ? "token" : "wallet", normalizedAddress: address, cluster: CLUSTER });
+    }
+
+    // Otherwise, assume wallet (system owned)
+    return Response.json({ type: "wallet", normalizedAddress: address, cluster: CLUSTER });
+  } catch (err) {
+    return new Response(err.message || "Failed to resolve", { status: 500 });
+  }
+};
