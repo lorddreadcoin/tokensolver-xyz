@@ -1,8 +1,6 @@
 // Netlify Function: resolve
 // Detect whether an input address is a token mint or a wallet address on Solana.
 
-export const config = { path: "/resolve" };
-
 const RPC = process.env.QUICKNODE_RPC_URL;
 const CLUSTER = process.env.SOLANA_CLUSTER;
 
@@ -18,10 +16,10 @@ async function getAccountInfo(address) {
   return res.json();
 }
 
-export default async (req, context) => {
+exports.handler = async (event, context) => {
   try {
-    const { address } = await req.json();
-    if (!address) return new Response(JSON.stringify({ error: "Missing address" }), { status: 400 });
+    const { address } = await JSON.parse(event.body);
+    if (!address) return { statusCode: 400, body: JSON.stringify({ error: "Missing address" }) };
 
     // Basic detection via getAccountInfo
     const info = await getAccountInfo(address);
@@ -29,7 +27,7 @@ export default async (req, context) => {
 
     // If no account data, treat as wallet (could be system account without data)
     if (!acc) {
-      return Response.json({ type: "wallet", normalizedAddress: address, cluster: CLUSTER });
+      return { statusCode: 200, body: JSON.stringify({ type: "wallet", normalizedAddress: address, cluster: CLUSTER }) };
     }
 
     const owner = acc?.owner; // program owner
@@ -45,12 +43,12 @@ export default async (req, context) => {
         // Mint account size is 82 bytes in SPL Token v2
         isMint = raw.length === 82;
       }
-      return Response.json({ type: isMint ? "token" : "wallet", normalizedAddress: address, cluster: CLUSTER });
+      return { statusCode: 200, body: JSON.stringify({ type: isMint ? "token" : "wallet", normalizedAddress: address, cluster: CLUSTER }) };
     }
 
     // Otherwise, assume wallet (system owned)
-    return Response.json({ type: "wallet", normalizedAddress: address, cluster: CLUSTER });
+    return { statusCode: 200, body: JSON.stringify({ type: "wallet", normalizedAddress: address, cluster: CLUSTER }) };
   } catch (err) {
-    return new Response(err.message || "Failed to resolve", { status: 500 });
+    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Failed to resolve" }) };
   }
 };

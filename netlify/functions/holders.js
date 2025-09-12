@@ -1,23 +1,21 @@
 // Netlify Function: holders
 // Returns top token accounts (approx holders) for a token mint using RPC getTokenLargestAccounts
 
-export const config = { path: "/holders" };
+exports.handler = async (event, context) => {
+  const RPC = process.env.QUICKNODE_RPC_URL;
 
-const RPC = process.env.QUICKNODE_RPC_URL;
+  async function rpc(method, params) {
+    const body = { jsonrpc: "2.0", id: 1, method, params };
+    const res = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`RPC error: ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message || "RPC returned error");
+    return json.result;
+  }
 
-async function rpc(method, params) {
-  const body = { jsonrpc: "2.0", id: 1, method, params };
-  const res = await fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`RPC error: ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message || "RPC returned error");
-  return json.result;
-}
-
-export default async (req) => {
   try {
-    const { mint } = await req.json();
-    if (!mint) return new Response(JSON.stringify({ error: "Missing mint" }), { status: 400 });
+    const { mint } = JSON.parse(event.body);
+    if (!mint) return { statusCode: 400, body: JSON.stringify({ error: "Missing mint" }) };
 
     // Total supply
     const supplyRes = await rpc("getTokenSupply", [mint]);
@@ -38,8 +36,8 @@ export default async (req) => {
       percent: supply > 0 ? (x.uiAmount / supply) * 100 : 0,
     }));
 
-    return Response.json(withPct);
+    return { statusCode: 200, body: JSON.stringify({ holders: withPct.map(acc => ({ address: acc.address, balance: acc.uiAmount || 0 })) }) };
   } catch (err) {
-    return new Response(err.message || "Failed to get holders", { status: 500 });
+    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Failed to get holders" }) };
   }
 };

@@ -1,21 +1,19 @@
 // Netlify Function: liquidity
 // Fetch Dexscreener pairs for a Solana token mint
 
-export const config = { path: "/liquidity" };
-
 const BASE = process.env.DEXSCREENER_BASE;
 
-export default async (req) => {
+exports.handler = async (event, context) => {
   try {
-    const { mint } = await req.json();
-    if (!mint) return new Response(JSON.stringify({ error: "Missing mint" }), { status: 400 });
+    const { mint } = JSON.parse(event.body);
+    if (!mint) return { statusCode: 400, body: JSON.stringify({ error: "Missing mint" }) };
 
     const url = `${BASE}/${mint}`;
     const res = await fetch(url, { headers: { "User-Agent": "tokensolver/1.0" } });
     if (!res.ok) throw new Error(`Dexscreener error ${res.status}`);
     const json = await res.json();
-    return Response.json(json);
+    return { statusCode: 200, body: JSON.stringify({ pairs: json.pairs || [] }) };
   } catch (err) {
-    return new Response(err.message || "Failed to fetch liquidity", { status: 500 });
+    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Failed to fetch liquidity" }) };
   }
 };

@@ -1,8 +1,6 @@
 // Netlify Function: bubbles
 // Generate bubble map data (nodes/links) for token transfer visualization
 
-export const config = { path: "/bubbles" };
-
 const RPC = process.env.QUICKNODE_RPC_URL;
 
 async function rpc(method, params) {
@@ -14,10 +12,10 @@ async function rpc(method, params) {
   return json.result;
 }
 
-export default async (req) => {
+exports.handler = async (event, context) => {
   try {
-    const { mint } = await req.json();
-    if (!mint) return new Response(JSON.stringify({ error: "Missing mint" }), { status: 400 });
+    const { mint } = JSON.parse(event.body);
+    if (!mint) return { statusCode: 400, body: JSON.stringify({ error: "Missing mint" }) };
 
     // Get top token accounts (holders)
     const largest = await rpc("getTokenLargestAccounts", [mint, { commitment: "confirmed" }]);
@@ -55,7 +53,7 @@ export default async (req) => {
     // 3. Create links between holders based on transfer history
     // This is a simplified version for MVP
 
-    return Response.json({
+    return { statusCode: 200, body: JSON.stringify({
       nodes,
       links,
       metadata: {
@@ -64,8 +62,8 @@ export default async (req) => {
         mint,
         generated: new Date().toISOString()
       }
-    });
+    }) };
   } catch (err) {
-    return new Response(err.message || "Failed to generate bubble map", { status: 500 });
+    return { statusCode: 500, body: JSON.stringify({ error: err.message || "Failed to generate bubble map" }) };
   }
 };
