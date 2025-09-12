@@ -70,9 +70,104 @@ function renderChart(mint) {
   show('chart');
 }
 
-function renderBubbles(graph) {
-  $('bubbles-json').textContent = JSON.stringify(graph, null, 2);
-  show('bubbles');
+function renderBubbles(data) {
+  const container = document.getElementById('bubbles');
+  
+  if (!data.nodes || data.nodes.length === 0) {
+    container.innerHTML = '<div class="card">No bubble map data available</div>';
+    return;
+  }
+  
+  // Create interactive bubble visualization
+  container.innerHTML = `
+    <div class="card">
+      <h3>Interactive Bubble Map</h3>
+      <div id="bubble-viz" style="width: 100%; height: 400px; background: #1a1a2e; border-radius: 8px; position: relative;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #888;">
+          🔄 Loading interactive visualization...
+        </div>
+      </div>
+      <details style="margin-top: 10px;">
+        <summary>Raw Data (${data.nodes.length} nodes, ${data.links.length} links)</summary>
+        <pre style="max-height: 200px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+      </details>
+    </div>
+  `;
+  
+  // Initialize D3.js visualization
+  setTimeout(() => initBubbleVisualization(data), 100);
+}
+
+function initBubbleVisualization(data) {
+  const container = document.getElementById('bubble-viz');
+  if (!container || !window.d3) {
+    // Fallback if D3.js not loaded
+    container.innerHTML = `
+      <div style="padding: 20px; text-align: center; color: #888;">
+        <div>📊 Interactive visualization requires D3.js</div>
+        <div style="margin-top: 10px; font-size: 0.9em;">
+          Showing ${data.nodes.length} holders with ${data.links.length} connections
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  // D3.js bubble visualization will be implemented here
+  container.innerHTML = `
+    <div style="padding: 20px; text-align: center; color: #888;">
+      <div>🎯 Bubble visualization coming soon</div>
+      <div style="margin-top: 10px; font-size: 0.9em;">
+        ${data.nodes.length} nodes • ${data.links.length} connections
+      </div>
+    </div>
+  `;
+}
+
+async function loadAIAnalysis(address, type, data) {
+  try {
+    const aiResult = await api('ai-agent', { address, type, data });
+    renderAIAnalysis(aiResult);
+  } catch (err) {
+    console.error('AI Analysis failed:', err);
+    renderAIAnalysis({ 
+      message: "🤖 AI Analysis unavailable", 
+      analysis: "Manual analysis required - check the data above for insights.",
+      risk_level: "unknown"
+    });
+  }
+}
+
+function renderAIAnalysis(data) {
+  const container = document.getElementById('ai-analysis') || createAIAnalysisSection();
+  const riskColor = data.risk_level === 'high' ? '#ff4444' : 
+                   data.risk_level === 'medium' ? '#ffaa00' : 
+                   data.risk_level === 'low' ? '#44ff44' : '#888';
+  
+  container.innerHTML = `
+    <div class="card">
+      <h3>🤖 AI Agent Analysis</h3>
+      <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin: 10px 0;">
+        <div style="color: ${riskColor}; font-weight: bold; margin-bottom: 10px;">
+          Risk Level: ${data.risk_level?.toUpperCase() || 'UNKNOWN'}
+        </div>
+        <div style="line-height: 1.6; white-space: pre-wrap;">${data.analysis}</div>
+        ${data.model_used ? `<div style="opacity: 0.7; font-size: 0.8em; margin-top: 10px;">Powered by ${data.model_used}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function createAIAnalysisSection() {
+  const section = document.createElement('div');
+  section.id = 'ai-analysis';
+  section.className = 'section';
+  
+  // Insert after the summary section
+  const summarySection = document.getElementById('summary');
+  summarySection.parentNode.insertBefore(section, summarySection.nextSibling);
+  
+  return section;
 }
 
 $('search-form').addEventListener('submit', async (e) => {
@@ -99,14 +194,24 @@ $('search-form').addEventListener('submit', async (e) => {
         api('score', { kind: 'token', address: normalizedAddress }).catch(() => ({ score: 0, reasons: [] })),
         api('bubbles', { mint: normalizedAddress }).catch(() => ({ nodes: [], links: [] }))
       ]);
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('type-info').textContent = `Type: ${type} • Address: ${address}`;
       renderScore(score);
       renderHolders(holders);
       renderLiquidity(liq);
       renderChart(normalizedAddress);
       renderBubbles(bubbles);
+      
+      // Load AI analysis for token
+      loadAIAnalysis(normalizedAddress, type, { holders, liquidity: liq, score, bubbles });
     } else {
       const score = await api('score', { kind: 'wallet', address: normalizedAddress });
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('type-info').textContent = `Type: ${type} • Address: ${address}`;
       renderScore(score);
+      
+      // Load AI analysis for wallet
+      loadAIAnalysis(normalizedAddress, type, { score });
     }
   } catch (err) {
     console.error(err);

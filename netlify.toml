@@ -2,5 +2,10 @@
   publish = "analyzer-frontend"
   functions = "netlify/functions"
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.dexscreener.com https://charting-library.tradingview-widget.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: wss:; frame-src 'self' https://dexscreener.com https://charting-library.tradingview-widget.com; object-src 'none'; base-uri 'self';"
+
 [context.production.environment]
   SECRETS_SCAN_ENABLED = "false"

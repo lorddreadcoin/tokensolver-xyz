@@ -53,10 +53,14 @@
         <iframe id="dexscreener-embed" src="" loading="lazy"></iframe>
       </div>
 
-      <div id="bubbles" class="card hidden">
+      <div id="bubbles" class="section" style="display: none;">
         <h2>Bubble Map</h2>
-        <pre id="bubbles-json" class="json"></pre>
+        <div class="card">Loading...</div>
       </div>
+
+      <!-- D3.js for interactive visualizations -->
+      <script src="https://d3js.org/d3.v7.min.js"></script>
+      <pre id="bubbles-json" class="json"></pre>
     </section>
 
     <section id="error" class="card error hidden"></section>

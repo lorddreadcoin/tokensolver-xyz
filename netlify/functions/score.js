@@ -12,9 +12,7 @@ exports.handler = async (event, context) => {
     const json = await res.json();
     if (json.error) throw new Error(json.error.message || "RPC returned error");
     return json.result;
-  if (json.error) throw new Error(json.error.message || "RPC returned error");
-  return json.result;
-}
+  }
 
 async function scoreWallet(address) {
   const reasons = [];
