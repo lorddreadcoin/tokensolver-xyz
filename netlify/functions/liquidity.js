@@ -3,7 +3,7 @@
 
 export const config = { path: "/liquidity" };
 
-const BASE = process.env.DEXSCREENER_BASE || "https://api.dexscreener.com/latest/dex/tokens";
+const BASE = process.env.DEXSCREENER_BASE;
 
 export default async (req) => {
   try {

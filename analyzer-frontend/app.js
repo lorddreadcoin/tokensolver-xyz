@@ -1,4 +1,4 @@
-const API_BASE = '/.netlify/functions';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '/.netlify/functions';
 
 const $ = (id) => document.getElementById(id);
 const show = (id) => $(id).classList.remove('hidden');

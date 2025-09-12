@@ -4,7 +4,7 @@
 export const config = { path: "/resolve" };
 
 const RPC = process.env.QUICKNODE_RPC_URL;
-const CLUSTER = process.env.SOLANA_CLUSTER || "mainnet-beta";
+const CLUSTER = process.env.SOLANA_CLUSTER;
 
 async function getAccountInfo(address) {
   const body = {

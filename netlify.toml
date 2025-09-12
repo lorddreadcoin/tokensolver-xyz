@@ -1,0 +1,6 @@
+[build]
+  publish = "analyzer-frontend"
+  functions = "netlify/functions"
+
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SOLANA_CLUSTER,LOG_LEVEL,NEXT_PUBLIC_API_BASE,DEXSCREENER_BASE"

@@ -1,0 +1,36 @@
+# NETLIFY ENVIRONMENT VARIABLES FOR TOKENSOLVER ANALYZER
+# Copy and paste these into Netlify > Project Configuration > Environment Variables
+# Use "Import from a .env file" or add individually
+
+# === REQUIRED FOR TOKENSOLVER ANALYZER ===
+SOLANA_CLUSTER=mainnet-beta
+QUICKNODE_RPC_URL=https://clean-muddy-cloud.solana-mainnet.quiknode.pro/a6b49d171376d455733b56715df79052cde088b6
+DEXSCREENER_BASE=https://api.dexscreener.com/latest/dex/tokens
+RATE_LIMIT_RPM=120
+LOG_LEVEL=info
+NEXT_PUBLIC_API_BASE=/.netlify/functions
+
+# === OPTIONAL - FOR ENHANCED DATA ===
+HELIUS_API_KEY=your_helius_api_key_here
+SOLSCAN_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3NDU2OTA1ODI1MTgsImVtYWlsIjoiY3J5cHRvZGFua3N4QGdtYWlsLmNvbSIsImFjdGlvbiI6InRva2VuLWFwaSIsImFwaVZlcnNpb24iOiJ2MiIsImlhdCI6MTc0NTY5MDU4Mn0.5LSUITnAurYKpwCNS-mL-LRb2pg3C4F9GJAzUML1Tak
+BIRDEYE_API_KEY=9ef69df265f64efa9bc78336f1ede4bd
+BIRDEYE_API_URL=https://public-api.birdeye.so
+
+# === NOT NEEDED FOR CURRENT ANALYZER (DO NOT ADD) ===
+# MONGO_URI - No database needed for serverless functions
+# MORALIS_API_KEY - Ethereum focused, not Solana
+# WEB3_PROVIDER_URL - Ethereum focused
+# TELEGRAM_* - No notifications in MVP
+# DISCORD_* - No notifications in MVP  
+# TWITTER_* - No social features in MVP
+# OPENAI_API_KEY - No AI features yet
+# ETHERSCAN_API_KEY - Ethereum focused
+# COINSTATS_API_KEY - Not used in current functions
+# Docker/FastAPI vars - This is serverless Netlify
+
+# === INSTRUCTIONS ===
+# 1. Go to Netlify > tokensolver > Project Configuration > Environment Variables
+# 2. Click "Add a variable" > "Import from a .env file"
+# 3. Upload this file or copy/paste the REQUIRED section above
+# 4. For each variable, check "Contains secret values" and select "All scopes"
+# 5. After adding variables, go to Deploys > Trigger deploy > Clear cache and deploy site
