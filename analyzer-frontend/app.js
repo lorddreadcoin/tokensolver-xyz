@@ -194,8 +194,10 @@ $('search-form').addEventListener('submit', async (e) => {
         api('score', { kind: 'token', address: normalizedAddress }).catch(() => ({ score: 0, reasons: [] })),
         api('bubbles', { mint: normalizedAddress }).catch(() => ({ nodes: [], links: [] }))
       ]);
-      document.getElementById('results').style.display = 'block';
-      document.getElementById('type-info').textContent = `Type: ${type} • Address: ${address}`;
+      const resultsEl = document.getElementById('results');
+      const typeInfoEl = document.getElementById('type-info');
+      if (resultsEl) resultsEl.style.display = 'block';
+      if (typeInfoEl) typeInfoEl.textContent = `Type: ${type} • Address: ${address}`;
       renderScore(score);
       renderHolders(holders);
       renderLiquidity(liq);
@@ -206,8 +208,10 @@ $('search-form').addEventListener('submit', async (e) => {
       loadAIAnalysis(normalizedAddress, type, { holders, liquidity: liq, score, bubbles });
     } else {
       const score = await api('score', { kind: 'wallet', address: normalizedAddress });
-      document.getElementById('results').style.display = 'block';
-      document.getElementById('type-info').textContent = `Type: ${type} • Address: ${address}`;
+      const resultsEl = document.getElementById('results');
+      const typeInfoEl = document.getElementById('type-info');
+      if (resultsEl) resultsEl.style.display = 'block';
+      if (typeInfoEl) typeInfoEl.textContent = `Type: ${type} • Address: ${address}`;
       renderScore(score);
       
       // Load AI analysis for wallet
