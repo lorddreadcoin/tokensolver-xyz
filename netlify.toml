@@ -2,5 +2,5 @@
   publish = "analyzer-frontend"
   functions = "netlify/functions"
 
-[build.environment]
-  SECRETS_SCAN_ENABLED = false
+[context.production.environment]
+  SECRETS_SCAN_ENABLED = "false"
