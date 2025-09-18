@@ -27,11 +27,73 @@ function clearError() {
 
 function renderScore(score) {
   $('score-value').textContent = `${score.score} / 100`;
+  
+  // Render basic reasons
   const reasons = score.reasons
     .map(r => `• ${r.label}: ${r.value} (impact ${r.impact})`) 
     .join('\n');
   $('score-reasons').innerHTML = `<pre class="json">${reasons}</pre>`;
+  
+  // Render progressive intelligence signals if available
+  if (score.signals && score.signals.length > 0) {
+    renderProgressiveSignals(score.signals);
+  }
+  
   show('score-card');
+}
+
+function renderProgressiveSignals(signals) {
+  const signalsContainer = document.getElementById('signals-container') || createSignalsContainer();
+  
+  // Group signals by tier for progressive disclosure
+  const signalsByTier = signals.reduce((acc, signal) => {
+    acc[signal.tier] = acc[signal.tier] || [];
+    acc[signal.tier].push(signal);
+    return acc;
+  }, {});
+
+  const tierColors = {
+    'RED': '#ff4444',
+    'ORANGE': '#ff8800', 
+    'YELLOW': '#ffaa00',
+    'GREEN': '#44ff44'
+  };
+
+  let signalsHTML = '<div class="signals-section"><h4>🔍 Intelligence Signals</h4>';
+  
+  Object.entries(signalsByTier).forEach(([tier, tierSignals]) => {
+    const color = tierColors[tier] || '#888';
+    signalsHTML += `
+      <div class="signal-tier" style="border-left: 4px solid ${color}; margin: 8px 0; padding: 8px;">
+        <div class="tier-header" style="color: ${color}; font-weight: bold; margin-bottom: 4px;">
+          ${tier} TIER (${tierSignals.length})
+        </div>
+        ${tierSignals.map(signal => `
+          <div class="signal-item" style="margin: 4px 0; padding: 4px 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+            <div style="font-weight: bold;">${signal.type}</div>
+            <div style="font-size: 0.9em; opacity: 0.9;">${signal.reason}</div>
+            <div style="font-size: 0.8em; opacity: 0.7;">Confidence: ${(signal.confidence * 100).toFixed(0)}%</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+  
+  signalsHTML += '</div>';
+  signalsContainer.innerHTML = signalsHTML;
+}
+
+function createSignalsContainer() {
+  const container = document.createElement('div');
+  container.id = 'signals-container';
+  container.className = 'signals-container';
+  
+  // Insert after score reasons
+  const scoreCard = document.getElementById('score-card');
+  const scoreReasons = document.getElementById('score-reasons');
+  scoreCard.insertBefore(container, scoreReasons.nextSibling);
+  
+  return container;
 }
 
 function renderHolders(data) {
