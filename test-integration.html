@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLGuard Integration Test Suite</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .pass { background: rgba(0, 255, 0, 0.2); }
+        .fail { background: rgba(255, 0, 0, 0.2); color: #ff4444; }
+        .warning { background: rgba(255, 255, 0, 0.2); color: #ffaa00; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #44ff44;
+        }
+        .json-display {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+        }
+        .threat-radar-test {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #00ff00;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 SOLGuard Integration Test Suite</h1>
+    <p>Testing the visceral UX transformation and backend integration</p>
+
+    <div class="test-section">
+        <h2>1. API Endpoint Tests</h2>
+        <button onclick="testThreatAnalysisAPI()">Test Threat Analysis API</button>
+        <button onclick="testScoreAPI()">Test Legacy Score API</button>
+        <button onclick="testAIAgentAPI()">Test AI Agent API</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Frontend Function Tests</h2>
+        <button onclick="testThreatRadar()">Test Threat Radar</button>
+        <button onclick="testIntelligenceStory()">Test Intelligence Story</button>
+        <button onclick="testManipulationTheater()">Test Manipulation Theater</button>
+        <button onclick="testEscapePlan()">Test Escape Plan</button>
+        <div id="frontend-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Mobile Responsiveness Tests</h2>
+        <button onclick="testMobileLayout()">Test Mobile Layout</button>
+        <button onclick="testTouchGestures()">Test Touch Gestures</button>
+        <div id="mobile-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Performance Tests</h2>
+        <button onclick="testAnimationPerformance()">Test Animation Performance</button>
+        <button onclick="testLoadingTimes()">Test Loading Times</button>
+        <div id="performance-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Live Demo Area</h2>
+        <input type="text" id="test-address" placeholder="Enter token address" style="width: 400px; padding: 10px; background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00;">
+        <button onclick="runLiveDemo()">Run Live Analysis</button>
+        <div id="demo-area"></div>
+    </div>
+
+    <script>
+        // Test configuration
+        const TEST_ADDRESSES = {
+            SAFE_TOKEN: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+            RISKY_TOKEN: 'So11111111111111111111111111111111111111112', // SOL (for testing)
+            UNKNOWN_TOKEN: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' // Random address
+        };
+
+        // Utility functions
+        function logResult(containerId, message, type = 'pass') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            container.appendChild(div);
+        }
+
+        function displayJSON(containerId, data, title = '') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.innerHTML = `
+                ${title ? `<h4>${title}</h4>` : ''}
+                <div class="json-display">${JSON.stringify(data, null, 2)}</div>
+            `;
+            container.appendChild(div);
+        }
+
+        // API Tests
+        async function testThreatAnalysisAPI() {
+            logResult('api-results', 'Testing threat-analysis endpoint...', 'warning');
+            
+            try {
+                const response = await fetch(`/.netlify/functions/threat-analysis?address=${TEST_ADDRESSES.SAFE_TOKEN}&kind=token`);
+                const data = await response.json();
+                
+                if (response.ok && data.signals && data.riskTier) {
+                    logResult('api-results', '✅ Threat Analysis API working correctly');
+                    displayJSON('api-results', data, 'Threat Analysis Response');
+                    
+                    // Test specific fields
+                    const requiredFields = ['address', 'score', 'riskTier', 'signals', 'manipulationRisk'];
+                    const missingFields = requiredFields.filter(field => !(field in data));
+                    
+                    if (missingFields.length === 0) {
+                        logResult('api-results', '✅ All required fields present in response');
+                    } else {
+                        logResult('api-results', `❌ Missing fields: ${missingFields.join(', ')}`, 'fail');
+                    }
+                } else {
+                    logResult('api-results', `❌ Threat Analysis API failed: ${data.error || 'Unknown error'}`, 'fail');
+                }
+            } catch (error) {
+                logResult('api-results', `❌ Threat Analysis API error: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testScoreAPI() {
+            logResult('api-results', 'Testing legacy score endpoint...', 'warning');
+            
+            try {
+                const response = await fetch(`/.netlify/functions/score?address=${TEST_ADDRESSES.SAFE_TOKEN}&kind=token`);
+                const data = await response.json();
+                
+                if (response.ok && typeof data.score === 'number') {
+                    logResult('api-results', '✅ Legacy Score API working correctly');
+                } else {
+                    logResult('api-results', `❌ Score API failed: ${data.error || 'Invalid response'}`, 'fail');
+                }
+            } catch (error) {
+                logResult('api-results', `❌ Score API error: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testAIAgentAPI() {
+            logResult('api-results', 'Testing AI agent endpoint...', 'warning');
+            
+            try {
+                const response = await fetch(`/.netlify/functions/ai-agent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        address: TEST_ADDRESSES.SAFE_TOKEN,
+                        type: 'token',
+                        data: { score: 75, signals: [] }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.analysis) {
+                    logResult('api-results', '✅ AI Agent API working correctly');
+                } else {
+                    logResult('api-results', `⚠️ AI Agent API may need API key configuration`, 'warning');
+                }
+            } catch (error) {
+                logResult('api-results', `⚠️ AI Agent API error (may need API key): ${error.message}`, 'warning');
+            }
+        }
+
+        // Frontend Function Tests
+        function testThreatRadar() {
+            logResult('frontend-results', 'Testing threat radar visualization...', 'warning');
+            
+            try {
+                // Create test container
+                const testContainer = document.createElement('div');
+                testContainer.id = 'test-threat-radar';
+                document.getElementById('frontend-results').appendChild(testContainer);
+                
+                // Test data
+                const mockSignals = [
+                    { type: 'LIQUIDITY_RISK', tier: 'RED', confidence: 0.9, reason: 'Low liquidity detected' },
+                    { type: 'WHALE_ACTIVITY', tier: 'ORANGE', confidence: 0.7, reason: 'Large holder accumulation' },
+                    { type: 'SOCIAL_SENTIMENT', tier: 'YELLOW', confidence: 0.6, reason: 'Negative social signals' }
+                ];
+                
+                const mockScore = { score: 25, signals: mockSignals };
+                
+                // Test if function exists and runs without error
+                if (typeof renderThreatRadar === 'function') {
+                    renderThreatRadar(mockScore, mockSignals);
+                    logResult('frontend-results', '✅ Threat radar function executed successfully');
+                    
+                    // Check if SVG was created
+                    const svg = testContainer.querySelector('svg.threat-radar');
+                    if (svg) {
+                        logResult('frontend-results', '✅ Threat radar SVG created correctly');
+                    } else {
+                        logResult('frontend-results', '❌ Threat radar SVG not found', 'fail');
+                    }
+                } else {
+                    logResult('frontend-results', '❌ renderThreatRadar function not found', 'fail');
+                }
+            } catch (error) {
+                logResult('frontend-results', `❌ Threat radar test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testIntelligenceStory() {
+            logResult('frontend-results', 'Testing intelligence story typewriter...', 'warning');
+            
+            try {
+                const mockSignals = [
+                    { tier: 'RED', confidence: 0.9, reason: 'Critical vulnerability detected' }
+                ];
+                
+                if (typeof renderIntelligenceStory === 'function') {
+                    renderIntelligenceStory(mockSignals);
+                    logResult('frontend-results', '✅ Intelligence story function executed successfully');
+                    
+                    // Check for typewriter container
+                    setTimeout(() => {
+                        const storyContainer = document.querySelector('.intelligence-story-wrapper');
+                        if (storyContainer) {
+                            logResult('frontend-results', '✅ Intelligence story container created');
+                        } else {
+                            logResult('frontend-results', '❌ Intelligence story container not found', 'fail');
+                        }
+                    }, 1000);
+                } else {
+                    logResult('frontend-results', '❌ renderIntelligenceStory function not found', 'fail');
+                }
+            } catch (error) {
+                logResult('frontend-results', `❌ Intelligence story test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testManipulationTheater() {
+            logResult('frontend-results', 'Testing manipulation theater...', 'warning');
+            
+            try {
+                const mockScore = { manipulationRisk: 'HIGH' };
+                
+                if (typeof showManipulationDetection === 'function') {
+                    showManipulationDetection(mockScore);
+                    logResult('frontend-results', '✅ Manipulation theater function executed successfully');
+                    
+                    // Check for theater elements
+                    setTimeout(() => {
+                        const theater = document.querySelector('.manipulation-alert');
+                        if (theater) {
+                            logResult('frontend-results', '✅ Manipulation theater created');
+                        } else {
+                            logResult('frontend-results', '❌ Manipulation theater not found', 'fail');
+                        }
+                    }, 500);
+                } else {
+                    logResult('frontend-results', '❌ showManipulationDetection function not found', 'fail');
+                }
+            } catch (error) {
+                logResult('frontend-results', `❌ Manipulation theater test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testEscapePlan() {
+            logResult('frontend-results', 'Testing escape plan...', 'warning');
+            
+            try {
+                const mockSignals = [
+                    { tier: 'RED', confidence: 0.9, reason: 'Immediate exit required' }
+                ];
+                
+                if (typeof showEscapePlan === 'function') {
+                    showEscapePlan(mockSignals);
+                    logResult('frontend-results', '✅ Escape plan function executed successfully');
+                    
+                    // Check for escape plan elements
+                    setTimeout(() => {
+                        const escapePlan = document.querySelector('.escape-plan');
+                        if (escapePlan) {
+                            logResult('frontend-results', '✅ Escape plan created');
+                        } else {
+                            logResult('frontend-results', '❌ Escape plan not found', 'fail');
+                        }
+                    }, 500);
+                } else {
+                    logResult('frontend-results', '❌ showEscapePlan function not found', 'fail');
+                }
+            } catch (error) {
+                logResult('frontend-results', `❌ Escape plan test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        // Mobile Tests
+        function testMobileLayout() {
+            logResult('mobile-results', 'Testing mobile layout responsiveness...', 'warning');
+            
+            // Simulate mobile viewport
+            const originalWidth = window.innerWidth;
+            
+            // Create test elements to check responsive behavior
+            const testElement = document.createElement('div');
+            testElement.className = 'threat-radar-container';
+            testElement.style.width = '100%';
+            document.body.appendChild(testElement);
+            
+            // Check CSS media queries
+            const mediaQuery = window.matchMedia('(max-width: 768px)');
+            if (mediaQuery.matches || originalWidth <= 768) {
+                logResult('mobile-results', '✅ Mobile viewport detected, responsive styles should apply');
+            } else {
+                logResult('mobile-results', '⚠️ Desktop viewport - mobile styles not active', 'warning');
+            }
+            
+            // Clean up
+            document.body.removeChild(testElement);
+        }
+
+        function testTouchGestures() {
+            logResult('mobile-results', 'Testing touch gesture support...', 'warning');
+            
+            // Check for touch event support
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                logResult('mobile-results', '✅ Touch events supported');
+                
+                // Test touch gesture implementation
+                if (typeof initMobileGestures === 'function') {
+                    logResult('mobile-results', '✅ Mobile gesture initialization function found');
+                } else {
+                    logResult('mobile-results', '⚠️ Mobile gesture function not implemented yet', 'warning');
+                }
+            } else {
+                logResult('mobile-results', '⚠️ Touch events not supported (desktop environment)', 'warning');
+            }
+        }
+
+        // Performance Tests
+        function testAnimationPerformance() {
+            logResult('performance-results', 'Testing animation performance...', 'warning');
+            
+            const startTime = performance.now();
+            let frameCount = 0;
+            
+            function measureFPS() {
+                frameCount++;
+                if (frameCount < 60) {
+                    requestAnimationFrame(measureFPS);
+                } else {
+                    const endTime = performance.now();
+                    const fps = 60 / ((endTime - startTime) / 1000);
+                    
+                    if (fps >= 55) {
+                        logResult('performance-results', `✅ Good animation performance: ${fps.toFixed(1)} FPS`);
+                    } else if (fps >= 30) {
+                        logResult('performance-results', `⚠️ Moderate animation performance: ${fps.toFixed(1)} FPS`, 'warning');
+                    } else {
+                        logResult('performance-results', `❌ Poor animation performance: ${fps.toFixed(1)} FPS`, 'fail');
+                    }
+                }
+            }
+            
+            requestAnimationFrame(measureFPS);
+        }
+
+        async function testLoadingTimes() {
+            logResult('performance-results', 'Testing API loading times...', 'warning');
+            
+            const startTime = performance.now();
+            
+            try {
+                await fetch(`/.netlify/functions/threat-analysis?address=${TEST_ADDRESSES.SAFE_TOKEN}&kind=token`);
+                const endTime = performance.now();
+                const loadTime = endTime - startTime;
+                
+                if (loadTime < 1000) {
+                    logResult('performance-results', `✅ Fast API response: ${loadTime.toFixed(0)}ms`);
+                } else if (loadTime < 3000) {
+                    logResult('performance-results', `⚠️ Moderate API response: ${loadTime.toFixed(0)}ms`, 'warning');
+                } else {
+                    logResult('performance-results', `❌ Slow API response: ${loadTime.toFixed(0)}ms`, 'fail');
+                }
+            } catch (error) {
+                logResult('performance-results', `❌ API performance test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        // Live Demo
+        async function runLiveDemo() {
+            const address = document.getElementById('test-address').value.trim();
+            const demoArea = document.getElementById('demo-area');
+            
+            if (!address) {
+                demoArea.innerHTML = '<div class="test-result fail">Please enter a token address</div>';
+                return;
+            }
+            
+            demoArea.innerHTML = '<div class="test-result warning">Running live analysis...</div>';
+            
+            try {
+                // Simulate the dramatic analysis flow
+                const response = await fetch(`/.netlify/functions/threat-analysis?address=${address}&kind=token`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    demoArea.innerHTML = `
+                        <div class="test-result pass">✅ Live analysis successful!</div>
+                        <div class="json-display">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                    
+                    // Try to render the actual UI components if they exist
+                    if (typeof renderThreatRadar === 'function' && data.signals) {
+                        const demoContainer = document.createElement('div');
+                        demoContainer.innerHTML = '<h4>Live Threat Radar:</h4>';
+                        demoArea.appendChild(demoContainer);
+                        
+                        renderThreatRadar(data, data.signals.signals);
+                    }
+                } else {
+                    demoArea.innerHTML = `<div class="test-result fail">❌ Analysis failed: ${data.error}</div>`;
+                }
+            } catch (error) {
+                demoArea.innerHTML = `<div class="test-result fail">❌ Demo failed: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-run basic tests on load
+        window.addEventListener('load', () => {
+            logResult('api-results', '🎯 Integration test suite loaded. Click buttons to run tests.', 'warning');
+            
+            // Pre-populate test address
+            document.getElementById('test-address').value = TEST_ADDRESSES.SAFE_TOKEN;
+        });
+    </script>
+</body>
+</html>

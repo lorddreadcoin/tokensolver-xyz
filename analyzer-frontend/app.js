@@ -532,9 +532,10 @@ async function analyzeWithDrama(address) {
   showLoadingPulse("🔍 Scanning for immediate threats...");
   
   try {
-    const quickCheck = await api('score', { kind: 'token', address });
+    // Use new threat-analysis endpoint for structured data
+    const threatData = await api('threat-analysis', { address, kind: 'token' });
     
-    if (quickCheck.score < 30) {
+    if (threatData.score < 30 || threatData.riskTier === 'RED') {
       showCriticalWarning("🚨 HIGH RISK DETECTED - ANALYZING DEEPER");
       await delay(800); // Build suspense
     }
@@ -551,16 +552,29 @@ async function analyzeWithDrama(address) {
     
     // Phase 3: Reveal the story
     hide('loading');
-    renderScore(quickCheck);
+    renderScore(threatData);
     
     // Phase 4: Show escape plan if critical
-    if (quickCheck.score < 30) {
-      setTimeout(() => showEscapePlan(quickCheck.signals || []), 2000);
+    if (threatData.riskTier === 'RED' || threatData.score < 30) {
+      setTimeout(() => showEscapePlan(threatData.signals?.signals || []), 2000);
+    }
+    
+    // Show manipulation theater if detected
+    if (threatData.manipulationRisk === 'HIGH' || threatData.manipulationRisk === 'MEDIUM') {
+      setTimeout(() => showManipulationDetection(threatData), 1000);
     }
     
   } catch (error) {
     hide('loading');
-    showError(`Analysis failed: ${error.message}`);
+    
+    // Fallback to original score endpoint if threat-analysis fails
+    try {
+      console.warn('Threat analysis failed, falling back to basic score:', error.message);
+      const basicScore = await api('score', { kind: 'token', address });
+      renderScore(basicScore);
+    } catch (fallbackError) {
+      showError(`Analysis failed: ${error.message}`);
+    }
   }
 }
 
